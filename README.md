@@ -11,10 +11,11 @@ annotation- and code-based publishing, a flexible query REST API, and a retentio
 | Module | Purpose |
 |---|---|
 | `audit-events-core` | Model (`AuditEvent`), public API (`AuditEventPublisher`, `Audit`, `@Audited`), SPI (`AuditEventStore`) |
-| `audit-events-mvc-autoconfigure` | Core auto-configuration (stores, AOP aspect, REST API, retention) + servlet Security listener |
-| `audit-events-webflux-autoconfigure` | Reactive (WebFlux) Security: user attribution + LOGIN/LOGOUT |
-| `audit-events-mvc-spring-boot-starter` | One-dependency entry point for **servlet (MVC)** apps |
-| `audit-events-webflux-spring-boot-starter` | One-dependency entry point for **reactive (WebFlux)** apps |
+| `audit-events-autoconfigure` | Stack-neutral auto-configuration (stores, AOP aspect, REST API, retention) |
+| `audit-events-autoconfigure-mvc` | Servlet (Spring MVC) Security: user attribution + LOGIN/LOGOUT |
+| `audit-events-autoconfigure-webflux` | Reactive (WebFlux) Security: user attribution + LOGIN/LOGOUT |
+| `audit-events-spring-boot-starter-mvc` | One-dependency entry point for **servlet (MVC)** apps |
+| `audit-events-spring-boot-starter-webflux` | One-dependency entry point for **reactive (WebFlux)** apps |
 
 ## Quick start
 
@@ -22,7 +23,7 @@ annotation- and code-based publishing, a flexible query REST API, and a retentio
 <!-- Servlet (Spring MVC) apps -->
 <dependency>
     <groupId>com.acme.audit</groupId>
-    <artifactId>audit-events-mvc-spring-boot-starter</artifactId>
+    <artifactId>audit-events-spring-boot-starter-mvc</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -33,7 +34,7 @@ reactive Security integration (see [Reactive (WebFlux) apps](#reactive-webflux-a
 ```xml
 <dependency>
     <groupId>com.acme.audit</groupId>
-    <artifactId>audit-events-webflux-spring-boot-starter</artifactId>
+    <artifactId>audit-events-spring-boot-starter-webflux</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -180,9 +181,9 @@ server still attributes business events to the end user via the relayed token.
 
 ### Reactive (WebFlux) apps
 
-The `audit-events-mvc-spring-boot-starter` Security integration is servlet-based (it uses the thread-bound
+The `audit-events-spring-boot-starter-mvc` Security integration is servlet-based (it uses the thread-bound
 `SecurityContextHolder` and servlet authentication events) and stays inactive on the reactive stack.
-Reactive apps use **`audit-events-webflux-spring-boot-starter`** instead, which adds an equivalent
+Reactive apps use **`audit-events-spring-boot-starter-webflux`** instead, which adds an equivalent
 reactive integration:
 
 - **User attribution.** A `WebFilter` resolves the authenticated user from
@@ -218,7 +219,7 @@ DataSource auditDataSource() { ... }
 The JDBC store needs an `audit_events` table. Two ways to create it:
 
 - **Production:** manage it with your migration tool. Copy-ready templates ship under
-  [`db/schema-templates`](audit-events-mvc-autoconfigure/src/main/resources/db/schema-templates) -
+  [`db/schema-templates`](audit-events-autoconfigure/src/main/resources/db/schema-templates) -
   Flyway scripts per vendor (PostgreSQL / MySQL / SQL Server) and a vendor-agnostic Liquibase
   changeset. They include the indexes the store relies on.
 - **Dev / demo only:** set `framework.audit-events.storage.jdbc.schema-init=true` to have the library
