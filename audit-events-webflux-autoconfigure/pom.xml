@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.acme.audit</groupId>
+        <artifactId>audit-events</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>audit-events-webflux-autoconfigure</artifactId>
+    <name>audit-events-webflux-autoconfigure</name>
+    <description>Reactive (WebFlux) auto-configuration for the audit events library</description>
+
+    <dependencies>
+        <!-- Stack-neutral core auto-configuration (publisher, dispatcher, stores, API, retention)
+             plus AuditProperties. The servlet security auto-config it carries is gated to SERVLET,
+             so it stays inactive on the reactive stack. -->
+        <dependency>
+            <groupId>com.acme.audit</groupId>
+            <artifactId>audit-events-mvc-autoconfigure</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- Lombok: compile-time only, not exposed to consumers -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ===== Optional integrations: activated only when present on the client classpath ===== -->
+        <!-- Reactive web stack: WebFilter, ServerWebExchange (transitively brings reactor-core). -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- ReactiveSecurityContextHolder + authentication events. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- ThreadLocalAccessor / ContextRegistry: bridges the reactive user into a thread-local
+             that the synchronous AuditorAware can read. Not optional - it is the mechanism this
+             module is built on, and reactor-core declares it only optionally (so it would not
+             otherwise reach the consuming app). -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
+
+        <!-- Generates configuration metadata for IDE auto-completion -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ===== Test ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- spring-webflux, spring-security-core and context-propagation above are 'optional'
+             (compile scope) and therefore already on this module's own test classpath. -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Shared test fixtures. TestData (core) holds the constants; TestDataFactory (mvc) the
+             security principals + RecordingPublisher. test-jar deps are not transitive, so both are
+             declared. Versions pinned explicitly because the BOM only manages the main jar type. -->
+        <dependency>
+            <groupId>com.acme.audit</groupId>
+            <artifactId>audit-events-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.acme.audit</groupId>
+            <artifactId>audit-events-mvc-autoconfigure</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- JDK 23+ no longer runs classpath annotation processors implicitly;
+                         declare every processor (Lombok + Spring Boot metadata) explicitly. -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

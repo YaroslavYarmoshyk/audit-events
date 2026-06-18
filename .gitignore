@@ -1,0 +1,36 @@
+# Maven build output
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Stray compiled classes outside target/ (packaged artifacts already live under target/)
+*.class
+
+# Logs
+*.log
+
+# IntelliJ IDEA
+# Shared project config under .idea/ is curated by .idea/.gitignore; ignore the
+# per-module descriptors and module output here.
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse / VS Code (in case a contributor uses them)
+.classpath
+.project
+.settings/
+.vscode/
+
+# Claude Code local (machine-specific) settings; .claude/settings.json stays tracked
+.claude/settings.local.json
+
+# OS noise
+.DS_Store
+Thumbs.db
