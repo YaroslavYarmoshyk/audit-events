@@ -13,10 +13,11 @@
 
     <modules>
         <module>audit-events-core</module>
-        <module>audit-events-mvc-autoconfigure</module>
-        <module>audit-events-webflux-autoconfigure</module>
-        <module>audit-events-mvc-spring-boot-starter</module>
-        <module>audit-events-webflux-spring-boot-starter</module>
+        <module>audit-events-autoconfigure</module>
+        <module>audit-events-autoconfigure-mvc</module>
+        <module>audit-events-autoconfigure-webflux</module>
+        <module>audit-events-spring-boot-starter-mvc</module>
+        <module>audit-events-spring-boot-starter-webflux</module>
     </modules>
 
     <properties>
@@ -47,12 +48,17 @@
             </dependency>
             <dependency>
                 <groupId>com.acme.audit</groupId>
-                <artifactId>audit-events-mvc-autoconfigure</artifactId>
+                <artifactId>audit-events-autoconfigure</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.acme.audit</groupId>
-                <artifactId>audit-events-webflux-autoconfigure</artifactId>
+                <artifactId>audit-events-autoconfigure-mvc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.acme.audit</groupId>
+                <artifactId>audit-events-autoconfigure-webflux</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
