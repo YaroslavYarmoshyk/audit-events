@@ -36,22 +36,4 @@
         <!-- Lombok (provided) and spring-boot-starter-test (test, supplying JUnit 5 + AssertJ) are
              inherited from the parent. -->
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- Publishes the shared test constants (TestData) as a test-jar so every downstream
-                 module asserts against the same principals and sample event types. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

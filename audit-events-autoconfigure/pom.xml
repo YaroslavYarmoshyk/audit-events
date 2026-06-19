@@ -96,17 +96,10 @@
         </dependency>
 
         <!-- ===== Test ===== -->
-        <!-- Shared test constants (TestData). Version pinned explicitly because the BOM only
-             manages the main jar, not the test-jar type. -->
-        <dependency>
-            <groupId>com.acme.audit</groupId>
-            <artifactId>audit-events-core</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <!-- spring-jdbc, micrometer-core, spring-security-core and spring-security-oauth2-core above
-             are 'optional' (compile scope) and therefore already on this module's own test classpath. -->
+        <!-- Tests are self-contained: this module's own fixtures (TestData / TestDataFactory /
+             TestDataSources) live under src/test. spring-jdbc, micrometer-core, spring-security-core
+             and spring-security-oauth2-core above are 'optional' (compile scope) and therefore already
+             on this module's own test classpath. -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>

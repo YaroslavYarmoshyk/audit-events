@@ -16,14 +16,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * Shared security/publisher fixtures for the auto-configuration test suites: principal tokens and
- * the {@link RecordingPublisher}, so the servlet and reactive modules assert attribution against a
- * single definition instead of re-declaring them per test.
+ * Shared security/publisher fixtures for this module's auto-configuration test suites: principal
+ * tokens and the {@link RecordingPublisher}, so the servlet and reactive tests assert attribution
+ * against a single definition instead of re-declaring them per test.
  *
- * <p>Lives in {@code audit-events-autoconfigure} and is shared with the mvc and webflux modules
- * through this module's {@code test-jar}. Deliberately depends only on core + spring-security-core
- * (both on every consumer's test classpath); JDBC fixtures live in {@link TestDataSources} to keep
- * this class free of spring-jdbc, and the shared string constants live in {@link TestData} (core).
+ * <p>JDBC fixtures live in {@link TestDataSources} to keep this class free of spring-jdbc, and the
+ * shared string constants live in {@link TestData}.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestDataFactory {
