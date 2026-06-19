@@ -10,9 +10,9 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-events-spring-boot-starter-mvc</artifactId>
-    <name>audit-events-spring-boot-starter-mvc</name>
-    <description>Starter: add this single dependency to enable audit events on the servlet (Spring MVC) stack</description>
+    <artifactId>audit-events-spring-boot-starter</artifactId>
+    <name>audit-events-spring-boot-starter</name>
+    <description>Starter: add this single dependency to enable audit events on either the servlet (MVC) or reactive (WebFlux) stack</description>
 
     <dependencies>
         <dependency>
@@ -23,15 +23,12 @@
             <groupId>com.acme.audit</groupId>
             <artifactId>audit-events-core</artifactId>
         </dependency>
-        <!-- Stack-neutral auto-configuration (publisher, dispatcher, stores, read API, retention). -->
+        <!-- Auto-configuration: stores, dispatcher, AOP, read API, retention, plus servlet and reactive
+             security. The security integrations activate by @ConditionalOnWebApplication, so the same
+             starter serves both stacks - the app brings its own web + Spring Security dependencies. -->
         <dependency>
             <groupId>com.acme.audit</groupId>
             <artifactId>audit-events-autoconfigure</artifactId>
-        </dependency>
-        <!-- Servlet security auto-configuration (user attribution + LOGIN/LOGOUT). -->
-        <dependency>
-            <groupId>com.acme.audit</groupId>
-            <artifactId>audit-events-autoconfigure-mvc</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -11,11 +11,8 @@ annotation- and code-based publishing, a flexible query REST API, and a retentio
 | Module | Purpose |
 |---|---|
 | `audit-events-core` | Model (`AuditEvent`), public API (`AuditEventPublisher`, `Audit`, `@Audited`), SPI (`AuditEventStore`) |
-| `audit-events-autoconfigure` | Stack-neutral auto-configuration (stores, AOP aspect, REST API, retention) |
-| `audit-events-autoconfigure-mvc` | Servlet (Spring MVC) Security: user attribution + LOGIN/LOGOUT |
-| `audit-events-autoconfigure-webflux` | Reactive (WebFlux) Security: user attribution + LOGIN/LOGOUT |
-| `audit-events-spring-boot-starter-mvc` | One-dependency entry point for **servlet (MVC)** apps |
-| `audit-events-spring-boot-starter-webflux` | One-dependency entry point for **reactive (WebFlux)** apps |
+| `audit-events-autoconfigure` | Auto-configuration: stores, AOP aspect, REST API, retention, plus servlet **and** reactive Security (user attribution + LOGIN/LOGOUT) |
+| `audit-events-spring-boot-starter` | One-dependency entry point for **both** servlet (MVC) and reactive (WebFlux) apps |
 
 ## Architecture
 
@@ -32,7 +29,7 @@ flowchart TB
         Static["Audit.record[...]<br/>static facade"]
         Anno["@Audited method<br/>AuditedAspect - SpEL metadata"]
         SecMvc["Spring Security events<br/>AuditSecurityListener [MVC]"]
-        SecFlux["Spring Security events<br/>ReactiveAuditSecurityListener [WebFlux]"]
+        SecFlux["Security success handlers you wire<br/>AuditServer*SuccessHandler [WebFlux]"]
     end
 
     Auditor(["AuditorAware of String<br/>security user, else anonymous"])
@@ -90,28 +87,22 @@ swapping in-memory ↔ JDBC ↔ your own store changes nothing on the write or r
 ## Quick start
 
 ```xml
-<!-- Servlet (Spring MVC) apps -->
+<!-- Servlet (MVC) and reactive (WebFlux) apps alike -->
 <dependency>
     <groupId>com.acme.audit</groupId>
-    <artifactId>audit-events-spring-boot-starter-mvc</artifactId>
+    <artifactId>audit-events-spring-boot-starter</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
-For **reactive (WebFlux)** apps, use the WebFlux starter instead - same configuration and API, with a
-reactive Security integration (see [Reactive (WebFlux) apps](#reactive-webflux-apps)):
+A single starter serves both stacks: the security integration activates by
+`@ConditionalOnWebApplication`, picking the servlet or reactive path automatically from your app's
+own web + Spring Security dependencies.
 
-```xml
-<dependency>
-    <groupId>com.acme.audit</groupId>
-    <artifactId>audit-events-spring-boot-starter-webflux</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-</dependency>
-```
-
-That's it - the app starts with an in-memory store and captures LOGIN/LOGOUT from
-**interactive logins** if Spring Security is present. Stateless (JWT/bearer) apps record
-LOGIN/LOGOUT themselves - see [Login/logout events](#loginlogout-events).
+That's it - the app starts with an in-memory store. On the **servlet** stack it captures LOGIN/LOGOUT
+from interactive logins automatically when Spring Security is present. On the **reactive** stack you
+wire two handlers (see [Reactive (WebFlux) apps](#reactive-webflux-apps)). Stateless (JWT/bearer) apps
+record LOGIN/LOGOUT themselves - see [Login/logout events](#loginlogout-events).
 
 ### Publishing events
 
@@ -198,7 +189,7 @@ framework:
 
 ## Login/logout events
 
-When Spring Security is present, the starter records:
+On the **servlet (MVC)** stack, when Spring Security is present the starter records automatically:
 
 - **LOGIN** on every `InteractiveAuthenticationSuccessEvent` - i.e. an actual interactive login
   (form login, OAuth2 login, remember-me). One record per login, attributed to the authenticated
@@ -207,6 +198,9 @@ When Spring Security is present, the starter records:
 
 Toggle each via `framework.audit-events.security.login-events-enabled` /
 `logout-events-enabled`.
+
+On the **reactive (WebFlux)** stack, Spring Security publishes no such events, so you wire two
+provided handlers instead - see [Reactive (WebFlux) apps](#reactive-webflux-apps).
 
 ### Who gets recorded as `createdBy`
 
@@ -291,24 +285,48 @@ server still attributes business events to the end user via the relayed token.
 
 ### Reactive (WebFlux) apps
 
-The `audit-events-spring-boot-starter-mvc` Security integration is servlet-based (it uses the thread-bound
-`SecurityContextHolder` and servlet authentication events) and stays inactive on the reactive stack.
-Reactive apps use **`audit-events-spring-boot-starter-webflux`** instead, which adds an equivalent
-reactive integration:
+The same `audit-events-spring-boot-starter` works on the reactive stack. The servlet integration
+(thread-bound `SecurityContextHolder`, servlet authentication events) stays inactive, and a reactive
+integration activates instead via `@ConditionalOnWebApplication(REACTIVE)`:
 
-- **User attribution.** A `WebFilter` resolves the authenticated user from
+- **User attribution is automatic.** A `WebFilter` resolves the authenticated user from
   `ReactiveSecurityContextHolder` once per request and lifts it into the Reactor `Context`. Via
   Micrometer/Reactor automatic context propagation that value is restored to a thread-local, so a
   plain `audit.publish(...)` made inside the reactive chain is attributed to the logged-in user -
-  exactly like the servlet stack. This relies on context propagation being active; it is on by
-  default when `io.micrometer:context-propagation` is on the classpath (the WebFlux starter brings
-  it). For an explicit business actor, `publishAs(user, ...)` always wins.
-- **LOGIN/LOGOUT.** WebFlux has no `InteractiveAuthenticationSuccessEvent`, so LOGIN is sourced from
-  `AuthenticationSuccessEvent` (and LOGOUT from `LogoutSuccessEvent`), delivered only when your
-  reactive authentication manager publishes them. The same
-  `framework.audit-events.security.login-events-enabled` / `logout-events-enabled` toggles apply, and
-  the stateless guidance above holds: a reactive **resource server** validates a token per request, so
-  disable the automatic LOGIN/LOGOUT and record it where the login truly happens.
+  exactly like the servlet stack. For an explicit business actor, `publishAs(user, ...)` always wins.
+
+- **LOGIN/LOGOUT is wired by you.** Reactive Spring Security publishes **no** authentication
+  application events (there is no reactive `AuthenticationSuccessEvent` / `LogoutSuccessEvent`), so
+  there is nothing for the library to listen to - the servlet auto-capture has no reactive
+  equivalent. Instead the library ships two decorators you add to your own `SecurityWebFilterChain`.
+  They record the audit event from the `Authentication` Spring Security hands the callback, then run
+  the handler they wrap (your redirect / OIDC logout still happens):
+
+  ```java
+  @Bean
+  SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
+                                                AuditEventPublisher auditEventPublisher,
+                                                AuditPrincipalResolver auditPrincipalResolver) {
+      return http
+          .oauth2Login(oauth2 -> oauth2.authenticationSuccessHandler(
+              new AuditServerAuthenticationSuccessHandler(
+                  new RedirectServerAuthenticationSuccessHandler("/"),   // your existing handler
+                  auditEventPublisher, auditPrincipalResolver)))
+          .logout(logout -> logout.logoutSuccessHandler(
+              new AuditServerLogoutSuccessHandler(
+                  new RedirectServerLogoutSuccessHandler(),              // your existing handler
+                  auditEventPublisher, auditPrincipalResolver)))
+          // ... your authorizeExchange(...) etc.
+          .build();
+  }
+  ```
+
+  `AuditEventPublisher` is always available; `AuditPrincipalResolver` is the same bean used for
+  `createdBy` attribution (the OAuth2 default, or your own - see
+  [Who gets recorded as `createdBy`](#who-gets-recorded-as-createdby)). Wire only the handler you want
+  (just login, just logout, or both). A reactive **resource server** has no interactive sign-in to
+  hook, so don't wire these there - record LOGIN where the login truly happens (see
+  [Stateless apps](#stateless-apps-jwt--bearer-tokens)).
 
 ## Multi-datasource
 

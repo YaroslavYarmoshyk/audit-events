@@ -1,4 +1,4 @@
-package com.acme.audit.autoconfigure.webflux;
+package com.acme.audit.autoconfigure.security;
 
 import io.micrometer.context.ThreadLocalAccessor;
 import org.jspecify.annotations.NonNull;

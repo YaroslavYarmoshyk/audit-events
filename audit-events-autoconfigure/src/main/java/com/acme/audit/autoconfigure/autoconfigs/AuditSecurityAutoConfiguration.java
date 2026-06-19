@@ -1,4 +1,4 @@
-package com.acme.audit.autoconfigure.mvc;
+package com.acme.audit.autoconfigure.autoconfigs;
 
 import java.util.Optional;
 
@@ -6,7 +6,7 @@ import com.acme.audit.AuditEventPublisher;
 import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.AuditProperties;
 import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
-import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
+import com.acme.audit.autoconfigure.security.AuditSecurityListener;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -22,13 +22,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Reuses Spring Security on the <strong>servlet</strong> stack: captures LOGIN/LOGOUT events and
- * provides a security-aware default {@link AuditorAware}. Active only when Spring Security is on
- * the classpath and the application is a servlet web app.
+ * provides a security-aware default {@link AuditorAware}. Active only when Spring Security is on the
+ * classpath and the application is a servlet web app.
  *
  * <p>It is intentionally restricted to {@code type = SERVLET}: the auditor reads the thread-bound
  * {@link SecurityContextHolder} and the listener hooks servlet authentication events, neither of
  * which apply on the reactive stack. Reactive (WebFlux) apps get their equivalents from
- * {@code audit-events-autoconfigure-webflux} instead.
+ * {@link ReactiveAuditSecurityAutoConfiguration} instead.
  *
  * <p>Ordered before {@link AuditAutoConfiguration} so this servlet {@code AuditorAware} wins over
  * that module's anonymous fallback.

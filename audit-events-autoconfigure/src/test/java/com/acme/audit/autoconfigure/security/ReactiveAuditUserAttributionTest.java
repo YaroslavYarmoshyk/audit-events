@@ -1,4 +1,4 @@
-package com.acme.audit.autoconfigure.webflux;
+package com.acme.audit.autoconfigure.security;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;

@@ -4,3 +4,5 @@ com.acme.audit.autoconfigure.autoconfigs.AuditAspectAutoConfiguration
 com.acme.audit.autoconfigure.autoconfigs.AuditApiAutoConfiguration
 com.acme.audit.autoconfigure.autoconfigs.AuditRetentionAutoConfiguration
 com.acme.audit.autoconfigure.autoconfigs.AuditDisabledAutoConfiguration
+com.acme.audit.autoconfigure.autoconfigs.AuditSecurityAutoConfiguration
+com.acme.audit.autoconfigure.autoconfigs.ReactiveAuditSecurityAutoConfiguration

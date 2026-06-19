@@ -12,7 +12,7 @@
 
     <artifactId>audit-events-autoconfigure</artifactId>
     <name>audit-events-autoconfigure</name>
-    <description>Stack-neutral (shared) auto-configuration for the audit events library</description>
+    <description>Auto-configuration for the audit events library (stores, AOP, REST API, retention, plus servlet and reactive security)</description>
 
     <dependencies>
         <dependency>
@@ -73,6 +73,27 @@
             <artifactId>spring-security-oauth2-core</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Reactive (WebFlux) stack: WebFilter / ServerWebExchange for per-request user attribution. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Reactive security web: ServerAuthenticationSuccessHandler / ServerLogoutSuccessHandler,
+             the types the AuditServer*SuccessHandler decorators implement for reactive LOGIN/LOGOUT. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- ThreadLocalAccessor / ContextRegistry bridge the reactive user into the thread-local the
+             synchronous AuditorAware reads. Not optional - it is the mechanism reactive attribution is
+             built on, and reactor-core declares it only optionally (so it would not otherwise reach a
+             reactive app). Inert on the servlet stack. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
 
         <!-- ===== Test ===== -->
         <!-- Shared test constants (TestData). Version pinned explicitly because the BOM only
@@ -108,23 +129,12 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- StepVerifier for the reactive attribution / handler tests. spring-webflux,
+             spring-security-web and context-propagation above are already on the test classpath. -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- Publishes the shared test fixtures (TestDataFactory / TestDataSources) as a test-jar
-                 so the mvc and webflux modules can reuse them instead of duplicating principals and publishers. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

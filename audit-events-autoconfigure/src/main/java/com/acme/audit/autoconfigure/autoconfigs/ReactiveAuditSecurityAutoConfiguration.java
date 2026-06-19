@@ -1,12 +1,12 @@
-package com.acme.audit.autoconfigure.webflux;
+package com.acme.audit.autoconfigure.autoconfigs;
 
 import java.util.Optional;
 
-import com.acme.audit.AuditEventPublisher;
 import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.AuditProperties;
 import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
-import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
+import com.acme.audit.autoconfigure.security.ReactiveAuditUserAccessor;
+import com.acme.audit.autoconfigure.security.ReactiveAuditUserWebFilter;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.ThreadLocalAccessor;
 import reactor.core.publisher.Hooks;
@@ -23,8 +23,8 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.web.server.WebFilter;
 
 /**
- * Reactive (WebFlux) counterpart to the servlet {@code AuditSecurityAutoConfiguration}. Provides
- * automatic user attribution and LOGIN/LOGOUT capture for reactive applications.
+ * Reactive (WebFlux) counterpart to {@link AuditSecurityAutoConfiguration}. Provides automatic
+ * per-request <strong>user attribution</strong> for reactive applications.
  *
  * <p>Active only when the application is a reactive web app with Spring Security, WebFlux and
  * Micrometer context-propagation on the classpath. It contributes:
@@ -34,9 +34,14 @@ import org.springframework.web.server.WebFilter;
  *   <li>a {@link ReactiveAuditUserAccessor} registered with the global {@link ContextRegistry} (plus
  *       Reactor automatic context propagation), so the user is restored to a thread-local;</li>
  *   <li>a synchronous {@link AuditorAware} reading that thread-local, which the publisher uses to
- *       attribute {@code publish(...)} calls - mirroring the servlet behaviour;</li>
- *   <li>a {@link ReactiveAuditSecurityListener} for LOGIN/LOGOUT events.</li>
+ *       attribute {@code publish(...)} calls - mirroring the servlet behaviour.</li>
  * </ul>
+ *
+ * <p>Reactive Spring Security publishes no authentication events, so there is no automatic LOGIN/LOGOUT
+ * capture here: reactive apps wire
+ * {@link com.acme.audit.autoconfigure.security.AuditServerAuthenticationSuccessHandler} /
+ * {@link com.acme.audit.autoconfigure.security.AuditServerLogoutSuccessHandler} into their own
+ * {@code SecurityWebFilterChain} (see the README).
  *
  * <p>Ordered before {@link AuditAutoConfiguration} so this reactive {@code AuditorAware} wins over
  * that module's anonymous fallback.
@@ -80,17 +85,6 @@ public class ReactiveAuditSecurityAutoConfiguration {
     @ConditionalOnMissingBean
     public ReactiveAuditUserWebFilter reactiveAuditUserWebFilter(AuditPrincipalResolver principalResolver) {
         return new ReactiveAuditUserWebFilter(principalResolver);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public ReactiveAuditSecurityListener reactiveAuditSecurityListener(AuditEventPublisher publisher,
-                                                                       AuditProperties properties,
-                                                                       AuditPrincipalResolver principalResolver) {
-        return new ReactiveAuditSecurityListener(publisher,
-                properties.getSecurity().isLoginEventsEnabled(),
-                properties.getSecurity().isLogoutEventsEnabled(),
-                principalResolver);
     }
 
     /** One-shot registration of the thread-local accessor and Reactor context propagation. */

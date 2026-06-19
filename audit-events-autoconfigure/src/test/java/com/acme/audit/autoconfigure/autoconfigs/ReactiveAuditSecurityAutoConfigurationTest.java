@@ -1,9 +1,10 @@
-package com.acme.audit.autoconfigure.webflux;
+package com.acme.audit.autoconfigure.autoconfigs;
 
 import com.acme.audit.AuditEventPublisher;
 import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.NoOpAuditEventPublisher;
 import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
+import com.acme.audit.autoconfigure.security.ReactiveAuditUserWebFilter;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -25,7 +26,6 @@ class ReactiveAuditSecurityAutoConfigurationTest {
     void reactiveStackWiresReactiveAuditBeans() {
         reactiveRunner.run(context -> {
             assertThat(context).hasSingleBean(ReactiveAuditUserWebFilter.class);
-            assertThat(context).hasSingleBean(ReactiveAuditSecurityListener.class);
             assertThat(context).hasSingleBean(AuditorAware.class);
             assertThat(context).getBean(AuditPrincipalResolver.class)
                     .isInstanceOf(OAuth2AuditPrincipalResolver.class);
