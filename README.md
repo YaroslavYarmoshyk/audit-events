@@ -17,6 +17,76 @@ annotation- and code-based publishing, a flexible query REST API, and a retentio
 | `audit-events-spring-boot-starter-mvc` | One-dependency entry point for **servlet (MVC)** apps |
 | `audit-events-spring-boot-starter-webflux` | One-dependency entry point for **reactive (WebFlux)** apps |
 
+## Architecture
+
+Events flow through a single pipeline: many **sources** funnel into one publisher, which emits a
+Spring application event; an `@TransactionalEventListener` then persists it **after commit**, off the
+business thread. The write side (publish → persist) and the read side (query / retention) meet only at
+the `AuditEventStore` SPI.
+
+```mermaid
+flowchart TB
+    subgraph sources["1 - Event sources"]
+        direction LR
+        DI["Business code<br/>AuditEventPublisher [DI]"]
+        Static["Audit.record[...]<br/>static facade"]
+        Anno["@Audited method<br/>AuditedAspect - SpEL metadata"]
+        SecMvc["Spring Security events<br/>AuditSecurityListener [MVC]"]
+        SecFlux["Spring Security events<br/>ReactiveAuditSecurityListener [WebFlux]"]
+    end
+
+    Auditor(["AuditorAware of String<br/>security user, else anonymous"])
+    Pub["DefaultAuditEventPublisher<br/>resolve auditor + Clock,<br/>build immutable AuditEvent"]
+
+    DI --> Pub
+    Static --> Pub
+    Anno --> Pub
+    SecMvc -->|"LOGIN / LOGOUT"| Pub
+    SecFlux -->|"LOGIN / LOGOUT"| Pub
+    Auditor -. who? .-> Pub
+
+    Pub ==>|"2 - publishEvent AuditRecordedEvent"| Bus(["Spring ApplicationEventPublisher"])
+
+    Bus ==> Disp["AuditEventDispatcher<br/>@TransactionalEventListener<br/>AFTER_COMMIT - fallbackExecution"]
+
+    Disp -->|"async default<br/>virtual / platform threads"| Save
+    Disp -->|"sync<br/>atomic / tests"| Save
+    Save{{"3 - AuditEventStore.save<br/>SPI - failures swallowed"}}
+
+    subgraph stores["Storage SPI"]
+        direction LR
+        InMem[("InMemoryAuditEventStore<br/>bounded ring buffer")]
+        Jdbc[("JdbcAuditEventStore<br/>JdbcClient - ANSI SQL")]
+    end
+    Save --> InMem
+    Save --> Jdbc
+
+    subgraph read["4 - Read and lifecycle"]
+        direction LR
+        Api["AuditQueryController<br/>GET /audit-events"] --> QSvc["AuditQueryService"] --> Search["store.search"]
+        Ret["AuditRetentionJob<br/>@Scheduled cron"] --> Del["store.deleteOlderThan"]
+    end
+
+    InMem -. query .-> Search
+    Jdbc -. query .-> Search
+    Jdbc -. purge .-> Del
+
+    classDef src fill:#1e3a5f,stroke:#4a90d9,color:#fff;
+    classDef core fill:#3d2c5f,stroke:#9b6dd6,color:#fff;
+    classDef store fill:#1f4d3a,stroke:#3fae6f,color:#fff;
+    classDef lifecycle fill:#5f3d1e,stroke:#d99a4a,color:#fff;
+    class DI,Static,Anno,SecMvc,SecFlux src;
+    class Pub,Disp,Save core;
+    class InMem,Jdbc store;
+    class Api,QSvc,Search,Ret,Del lifecycle;
+```
+
+**Why it's shaped this way:** the publisher only resolves *who* and *when* and fires an event — it
+never touches I/O, so the business thread never blocks. Decoupling via `AuditRecordedEvent` lets the
+dispatcher wait for the transaction to commit (rolled-back work is never audited) and move persistence
+onto a virtual-thread executor. Everything downstream depends only on the `AuditEventStore` SPI, so
+swapping in-memory ↔ JDBC ↔ your own store changes nothing on the write or read path.
+
 ## Quick start
 
 ```xml
