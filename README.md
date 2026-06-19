@@ -208,6 +208,46 @@ When Spring Security is present, the starter records:
 Toggle each via `framework.audit-events.security.login-events-enabled` /
 `logout-events-enabled`.
 
+### Who gets recorded as `createdBy`
+
+The auditor recorded on every event is resolved from the current `Authentication` by an
+`AuditPrincipalResolver` - a single functional interface (`Authentication -> String`) that decides
+who an event is attributed to, used for LOGIN/LOGOUT and for the `createdBy` of every audited event:
+
+```java
+@FunctionalInterface
+public interface AuditPrincipalResolver {
+    String resolve(Authentication authentication);
+}
+```
+
+**Default (OAuth2/OIDC only).** Out of the box the resolver handles interactive OAuth2/OIDC logins:
+it records the `preferred_username` claim, falling back to `Authentication.getName()` only when that
+claim is absent. This matters because for OAuth2/OIDC logins `getName()` is the configured name
+attribute - frequently the opaque `sub` claim - which makes for a poor audit trail.
+
+For **any other authentication** (JWT/bearer resource-server tokens, username/password, custom
+principals) the default resolver **throws** `IllegalStateException` - there is no sensible universal
+mapping, so you are required to provide one:
+
+**Override.** Declare your own bean to attribute events however you need - a different claim, a
+composite value, a lookup - and it replaces the default:
+
+```java
+@Bean
+AuditPrincipalResolver auditPrincipalResolver() {
+    return authentication -> {
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getClaimAsString("email");
+        }
+        return authentication.getName();
+    };
+}
+```
+
+The resolver is only invoked for non-anonymous authentications; returning `null` or a blank value
+attributes the event to the anonymous auditor.
+
 ### Stateless apps (JWT / bearer tokens)
 
 A stateless resource server has **no interactive login moment** - it validates a bearer token on

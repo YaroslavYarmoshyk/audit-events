@@ -27,13 +27,6 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
-        <!-- Lombok: compile-time only, not exposed to consumers -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- ===== Optional integrations: activated only when present on the client classpath ===== -->
         <!-- SecurityContextHolder + servlet authentication events. -->
         <dependency>
@@ -42,19 +35,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Generates configuration metadata for IDE auto-completion -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- ===== Test ===== -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- spring-security-core above is 'optional' (compile scope) and therefore already on this
              module's own test classpath. -->
         <!-- Shared test fixtures. TestData (core) holds the constants; TestDataFactory (shared) the
@@ -75,29 +56,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- JDK 23+ no longer runs classpath annotation processors implicitly;
-                         declare every processor (Lombok + Spring Boot metadata) explicitly. -->
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>${spring-boot.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

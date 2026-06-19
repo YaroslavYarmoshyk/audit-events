@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.authentication.event.LogoutSuccessEvent;
+import org.springframework.security.core.Authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +56,7 @@ class AuditSecurityListenerTest {
     }
 
     private AuditSecurityListener listener(boolean login, boolean logout) {
-        return new AuditSecurityListener(publisher, login, logout);
+        return new AuditSecurityListener(publisher, login, logout, Authentication::getName);
     }
 
     private InteractiveAuthenticationSuccessEvent interactiveLogin() {

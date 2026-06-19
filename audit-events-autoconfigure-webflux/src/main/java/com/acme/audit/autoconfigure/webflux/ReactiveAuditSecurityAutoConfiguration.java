@@ -3,7 +3,9 @@ package com.acme.audit.autoconfigure.webflux;
 import java.util.Optional;
 
 import com.acme.audit.AuditEventPublisher;
+import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.AuditProperties;
+import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.ThreadLocalAccessor;
@@ -63,19 +65,32 @@ public class ReactiveAuditSecurityAutoConfiguration {
         return () -> Optional.ofNullable(ReactiveAuditUserAccessor.current());
     }
 
+    /**
+     * Default resolver for OAuth2/OIDC logins ({@code preferred_username}). Throws for any other
+     * authentication, so non-OAuth2 apps must declare their own {@link AuditPrincipalResolver}, which
+     * replaces this one.
+     */
     @Bean
     @ConditionalOnMissingBean
-    public ReactiveAuditUserWebFilter reactiveAuditUserWebFilter() {
-        return new ReactiveAuditUserWebFilter();
+    public AuditPrincipalResolver auditPrincipalResolver() {
+        return new OAuth2AuditPrincipalResolver();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ReactiveAuditUserWebFilter reactiveAuditUserWebFilter(AuditPrincipalResolver principalResolver) {
+        return new ReactiveAuditUserWebFilter(principalResolver);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public ReactiveAuditSecurityListener reactiveAuditSecurityListener(AuditEventPublisher publisher,
-                                                                       AuditProperties properties) {
+                                                                       AuditProperties properties,
+                                                                       AuditPrincipalResolver principalResolver) {
         return new ReactiveAuditSecurityListener(publisher,
                 properties.getSecurity().isLoginEventsEnabled(),
-                properties.getSecurity().isLogoutEventsEnabled());
+                properties.getSecurity().isLogoutEventsEnabled(),
+                principalResolver);
     }
 
     /** One-shot registration of the thread-local accessor and Reactor context propagation. */

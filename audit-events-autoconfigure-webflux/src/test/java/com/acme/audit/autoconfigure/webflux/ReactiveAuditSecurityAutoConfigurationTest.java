@@ -1,7 +1,9 @@
 package com.acme.audit.autoconfigure.webflux;
 
 import com.acme.audit.AuditEventPublisher;
+import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.NoOpAuditEventPublisher;
+import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -25,8 +27,18 @@ class ReactiveAuditSecurityAutoConfigurationTest {
             assertThat(context).hasSingleBean(ReactiveAuditUserWebFilter.class);
             assertThat(context).hasSingleBean(ReactiveAuditSecurityListener.class);
             assertThat(context).hasSingleBean(AuditorAware.class);
+            assertThat(context).getBean(AuditPrincipalResolver.class)
+                    .isInstanceOf(OAuth2AuditPrincipalResolver.class);
             assertThat(context).hasSingleBean(
                     ReactiveAuditSecurityAutoConfiguration.ReactiveAuditUserContextRegistrar.class);
+        });
+    }
+
+    @Test
+    void customPrincipalResolverOverridesDefault() {
+        reactiveRunner.withUserConfiguration(CustomResolverConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(AuditPrincipalResolver.class);
+            assertThat(context).doesNotHaveBean(OAuth2AuditPrincipalResolver.class);
         });
     }
 
@@ -58,6 +70,14 @@ class ReactiveAuditSecurityAutoConfigurationTest {
         @Bean
         AuditEventPublisher auditEventPublisher() {
             return new NoOpAuditEventPublisher();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class CustomResolverConfig {
+        @Bean
+        AuditPrincipalResolver auditPrincipalResolver() {
+            return authentication -> "custom-" + authentication.getName();
         }
     }
 }

@@ -3,7 +3,9 @@ package com.acme.audit.autoconfigure.mvc;
 import java.util.Optional;
 
 import com.acme.audit.AuditEventPublisher;
+import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.AuditProperties;
+import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -37,23 +39,38 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @ConditionalOnProperty(prefix = "framework.audit-events", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuditSecurityAutoConfiguration {
 
+    /**
+     * Default resolver for OAuth2/OIDC logins ({@code preferred_username}). Throws for any other
+     * authentication, so non-OAuth2 apps must declare their own {@link AuditPrincipalResolver}, which
+     * replaces this one.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuditPrincipalResolver auditPrincipalResolver() {
+        return new OAuth2AuditPrincipalResolver();
+    }
+
     /** Resolves createdBy from the current authentication; falls back to anonymous. */
     @Bean
     @ConditionalOnMissingBean(AuditorAware.class)
-    public AuditorAware<String> securityAuditorAware() {
+    public AuditorAware<String> securityAuditorAware(AuditPrincipalResolver principalResolver) {
         return () -> {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             return Optional.ofNullable(authentication)
                     .filter(auth -> !(auth instanceof AnonymousAuthenticationToken))
-                    .map(Authentication::getName);
+                    .map(principalResolver::resolve)
+                    .filter(name -> !name.isBlank());
         };
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AuditSecurityListener auditSecurityListener(AuditEventPublisher publisher, AuditProperties properties) {
+    public AuditSecurityListener auditSecurityListener(AuditEventPublisher publisher,
+                                                       AuditProperties properties,
+                                                       AuditPrincipalResolver principalResolver) {
         return new AuditSecurityListener(publisher,
                 properties.getSecurity().isLoginEventsEnabled(),
-                properties.getSecurity().isLogoutEventsEnabled());
+                properties.getSecurity().isLogoutEventsEnabled(),
+                principalResolver);
     }
 }

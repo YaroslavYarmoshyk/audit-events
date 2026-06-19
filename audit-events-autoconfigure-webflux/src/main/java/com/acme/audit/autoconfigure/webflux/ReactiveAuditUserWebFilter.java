@@ -2,6 +2,8 @@ package com.acme.audit.autoconfigure.webflux;
 
 import java.util.Optional;
 
+import com.acme.audit.AuditPrincipalResolver;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +25,10 @@ import org.springframework.web.server.WebFilterChain;
  * so the security context is already established when this filter reads it. Anonymous and
  * unauthenticated requests are passed through untouched (no user written).
  */
+@RequiredArgsConstructor
 public class ReactiveAuditUserWebFilter implements WebFilter, Ordered {
+
+    private final AuditPrincipalResolver principalResolver;
 
     @NonNull
     @Override
@@ -34,7 +39,8 @@ public class ReactiveAuditUserWebFilter implements WebFilter, Ordered {
         return ReactiveSecurityContextHolder.getContext()
                 .mapNotNull(SecurityContext::getAuthentication)
                 .filter(ReactiveAuditUserWebFilter::isAuthenticatedUser)
-                .map(Authentication::getName)
+                .mapNotNull(principalResolver::resolve)
+                .filter(name -> !name.isBlank())
                 .map(Optional::of)
                 .defaultIfEmpty(Optional.empty())
                 .flatMap(user -> user

@@ -12,6 +12,7 @@ import reactor.test.StepVerifier;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -28,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ReactiveAuditUserAttributionTest {
 
-    private final WebFilter filter = new ReactiveAuditUserWebFilter();
+    private final WebFilter filter = new ReactiveAuditUserWebFilter(Authentication::getName);
     private final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/x"));
 
     @Test

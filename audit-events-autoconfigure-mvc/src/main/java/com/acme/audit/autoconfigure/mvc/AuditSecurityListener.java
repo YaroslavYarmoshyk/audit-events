@@ -1,6 +1,7 @@
 package com.acme.audit.autoconfigure.mvc;
 
 import com.acme.audit.AuditEventPublisher;
+import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.constants.AuditConstants;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ public class AuditSecurityListener {
     private final AuditEventPublisher publisher;
     private final boolean loginEnabled;
     private final boolean logoutEnabled;
+    private final AuditPrincipalResolver principalResolver;
 
     /** Interactive login (form/OAuth2 login, remember-me); fired once after the SecurityContext is set. */
     @EventListener
@@ -46,9 +48,11 @@ public class AuditSecurityListener {
     }
 
     /** Principal carried by the event, falling back to anonymous when absent. */
-    private static String resolveUser(AbstractAuthenticationEvent event) {
+    private String resolveUser(AbstractAuthenticationEvent event) {
         Authentication authentication = event.getAuthentication();
-        String name = !(authentication instanceof AnonymousAuthenticationToken) ? authentication.getName() : null;
+        String name = !(authentication instanceof AnonymousAuthenticationToken)
+                ? principalResolver.resolve(authentication)
+                : null;
         return (name != null && !name.isBlank()) ? name : AuditConstants.ANONYMOUS;
     }
 }

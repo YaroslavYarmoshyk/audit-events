@@ -44,13 +44,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Lombok: compile-time only, not exposed to consumers -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- ===== Optional integrations: activated only when present on the client classpath ===== -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -67,20 +60,21 @@
             <artifactId>micrometer-core</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- Generates configuration metadata for IDE auto-completion -->
+        <!-- Authentication + OAuth2 principal types read by OAuth2AuditPrincipalResolver, the default
+             auditor (createdBy) resolution used by the servlet and reactive security modules. oauth2-core
+             is only touched when present, so plain username/password apps need neither. -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-core</artifactId>
             <optional>true</optional>
         </dependency>
 
         <!-- ===== Test ===== -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- Shared test constants (TestData). Version pinned explicitly because the BOM only
              manages the main jar, not the test-jar type. -->
         <dependency>
@@ -90,14 +84,8 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <!-- spring-jdbc and micrometer-core above are 'optional' (compile scope) and therefore
-             already on this module's own test classpath. spring-security-core is needed only by the
-             shared TestDataFactory fixture (no main code depends on it), so it is test-scoped here. -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- spring-jdbc, micrometer-core, spring-security-core and spring-security-oauth2-core above
+             are 'optional' (compile scope) and therefore already on this module's own test classpath. -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -136,26 +124,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- JDK 23+ no longer runs classpath annotation processors implicitly;
-                         declare every processor (Lombok + Spring Boot metadata) explicitly. -->
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>${spring-boot.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
             </plugin>
         </plugins>
     </build>
