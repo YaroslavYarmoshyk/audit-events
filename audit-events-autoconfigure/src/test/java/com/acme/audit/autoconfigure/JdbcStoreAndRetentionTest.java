@@ -15,6 +15,7 @@ import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.spi.AuditEventStore;
 import com.acme.audit.spi.AuditSearchCriteria;
 import com.acme.audit.testsupport.TestData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("JDBC store and retention purging")
 class JdbcStoreAndRetentionTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
@@ -46,6 +48,7 @@ class JdbcStoreAndRetentionTest {
     }
 
     @Test
+    @DisplayName("JDBC store is selected and persists and queries events")
     void jdbcStoreIsSelectedAndPersistsAndQueries() {
         runner.run(context -> {
             assertThat(context.getBean(AuditEventStore.class)).isInstanceOf(JdbcAuditEventStore.class);
@@ -68,6 +71,7 @@ class JdbcStoreAndRetentionTest {
     }
 
     @Test
+    @DisplayName("Retention job deletes events older than the max age in batches")
     void retentionDeletesOldEventsInBatches() {
         runner.run(context -> {
             DataSource ds = context.getBean(DataSource.class);

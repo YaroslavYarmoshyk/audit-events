@@ -9,6 +9,7 @@ import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
 import com.acme.audit.autoconfigure.autoconfigs.AuditStoreAutoConfiguration;
 import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Audit query API auto-configuration")
 class AuditApiAutoConfigurationTest {
     private final WebApplicationContextRunner runner = new WebApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
@@ -25,11 +27,13 @@ class AuditApiAutoConfigurationTest {
             .withPropertyValues("framework.audit-events.async.enabled=false");
 
     @Test
+    @DisplayName("Query controller is absent unless the API is explicitly enabled")
     void apiIsDisabledByDefault() {
         runner.run(context -> assertThat(context).doesNotHaveBean(AuditQueryController.class));
     }
 
     @Test
+    @DisplayName("Enabling the API exposes the controller and filters results by type")
     void apiIsExposedWhenEnabledAndReturnsFilteredResults() {
         runner.withPropertyValues("framework.audit-events.api.enabled=true").run(context -> {
             assertThat(context).hasSingleBean(AuditQueryController.class);
@@ -49,6 +53,7 @@ class AuditApiAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Date range filter covers whole days inclusively")
     void dateRangeIsInterpretedAsWholeDaysInclusive() {
         runner.withPropertyValues("framework.audit-events.api.enabled=true").run(context -> {
             context.getBean(AuditEventPublisher.class).publish(AuditConstants.LOGIN, "x");

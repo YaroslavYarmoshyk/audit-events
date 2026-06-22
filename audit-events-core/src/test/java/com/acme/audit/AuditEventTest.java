@@ -5,14 +5,17 @@ import java.util.UUID;
 
 import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@DisplayName("AuditEvent")
 class AuditEventTest {
 
     @Test
+    @DisplayName("Builder applies sensible defaults for unset fields")
     void builderAppliesSensibleDefaults() {
         AuditEvent event = AuditEvent.builder().type(AuditConstants.LOGIN).build();
 
@@ -24,6 +27,7 @@ class AuditEventTest {
     }
 
     @Test
+    @DisplayName("Builder honours explicitly supplied values")
     void builderHonoursExplicitValues() {
         UUID id = UUID.randomUUID();
         Instant ts = Instant.parse("2026-01-01T00:00:00Z");
@@ -36,12 +40,14 @@ class AuditEventTest {
     }
 
     @Test
+    @DisplayName("Type is mandatory and a missing one is rejected")
     void typeIsMandatory() {
         assertThatThrownBy(() -> AuditEvent.builder().build())
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
+    @DisplayName("Built-in event types are exposed as constants")
     void builtInTypesAreExposedAsConstants() {
         assertThat(AuditConstants.LOGIN).isEqualTo("LOGIN");
         assertThat(AuditConstants.LOGOUT).isEqualTo("LOGOUT");

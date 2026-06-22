@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.acme.audit.autoconfigure.testsupport.TestDataFactory;
 import com.acme.audit.testsupport.TestData;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -27,12 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the {@code AuditorAware} - is handled by Micrometer/Reactor automatic context propagation and is
  * exercised end-to-end in a running application rather than asserted here.
  */
+@DisplayName("Reactive audit user attribution filter")
 class ReactiveAuditUserAttributionTest {
 
     private final WebFilter filter = new ReactiveAuditUserWebFilter(Authentication::getName);
     private final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/x"));
 
     @Test
+    @DisplayName("Authenticated user is written to the Reactor context and the chain runs once")
     void authenticatedUserIsWrittenToContextAndChainRunsOnce() {
         RecordingChain chain = new RecordingChain();
 
@@ -46,6 +49,7 @@ class ReactiveAuditUserAttributionTest {
     }
 
     @Test
+    @DisplayName("Anonymous request writes no user and the chain runs once")
     void anonymousRequestWritesNoUserAndChainRunsOnce() {
         RecordingChain chain = new RecordingChain();
 
@@ -58,6 +62,7 @@ class ReactiveAuditUserAttributionTest {
     }
 
     @Test
+    @DisplayName("Unauthenticated request writes no user and the chain runs once")
     void unauthenticatedRequestWritesNoUserAndChainRunsOnce() {
         RecordingChain chain = new RecordingChain();
 

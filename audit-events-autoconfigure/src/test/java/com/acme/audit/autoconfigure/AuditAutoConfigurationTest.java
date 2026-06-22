@@ -11,6 +11,7 @@ import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
 import com.acme.audit.spi.AuditEventStore;
 import com.acme.audit.spi.AuditSearchCriteria;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Core audit auto-configuration")
 class AuditAutoConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
@@ -31,6 +33,7 @@ class AuditAutoConfigurationTest {
             .withPropertyValues("framework.audit-events.async.enabled=false");
 
     @Test
+    @DisplayName("Defaults to an in-memory store and starts without a database")
     void defaultsToInMemoryStoreAndStartsWithoutDatabase() {
         runner.run(context -> {
             assertThat(context).hasSingleBean(AuditEventStore.class);
@@ -40,6 +43,7 @@ class AuditAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Published event is persisted with resolved audit fields")
     void publishedEventIsPersistedWithResolvedAuditFields() {
         runner.run(context -> {
             AuditEventPublisher publisher = context.getBean(AuditEventPublisher.class);
@@ -55,6 +59,7 @@ class AuditAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Map metadata is serialized to JSON")
     void mapMetadataIsSerializedToJson() {
         runner.run(context -> {
             context.getBean(AuditEventPublisher.class)
@@ -67,6 +72,7 @@ class AuditAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("An existing AuditorAware bean is reused for attribution")
     void existingAuditorAwareBeanIsReused() {
         runner.withUserConfiguration(CustomAuditorConfig.class).run(context -> {
             assertThat(context).hasSingleBean(AuditorAware.class);
@@ -79,6 +85,7 @@ class AuditAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Retention zone defaults to Toronto and binds from the property")
     void retentionZoneDefaultsToTorontoAndBindsFromProperty() {
         runner.run(context -> assertThat(context.getBean(AuditProperties.class).getZone())
                 .isEqualTo(ZoneId.of("America/Toronto")));

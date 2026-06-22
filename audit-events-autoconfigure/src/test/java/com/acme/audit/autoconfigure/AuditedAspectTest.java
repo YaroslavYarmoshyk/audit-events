@@ -7,6 +7,7 @@ import com.acme.audit.autoconfigure.autoconfigs.AuditAutoConfiguration;
 import com.acme.audit.autoconfigure.autoconfigs.AuditStoreAutoConfiguration;
 import com.acme.audit.spi.AuditEventStore;
 import com.acme.audit.spi.AuditSearchCriteria;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("@Audited aspect")
 class AuditedAspectTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
@@ -28,6 +30,7 @@ class AuditedAspectTest {
             .withUserConfiguration(ServiceConfig.class);
 
     @Test
+    @DisplayName("Annotated method records an event with SpEL-evaluated metadata")
     void annotatedMethodRecordsEventWithSpelMetadata() {
         runner.run(context -> {
             context.getBean(OrderService.class).cancel(new Order("123"));

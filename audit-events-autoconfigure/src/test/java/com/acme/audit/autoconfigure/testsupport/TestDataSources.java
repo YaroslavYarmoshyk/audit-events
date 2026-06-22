@@ -1,5 +1,6 @@
 package com.acme.audit.autoconfigure.testsupport;
 
+import java.util.UUID;
 import javax.sql.DataSource;
 
 import lombok.AccessLevel;
@@ -15,11 +16,15 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestDataSources {
 
-    /** A fresh embedded H2 database with the given (unique) name. */
+    /**
+     * A fresh, isolated embedded H2 database. The supplied name is only a readable prefix: a random
+     * suffix is appended so every call gets its own in-memory instance, which keeps tests that run
+     * concurrently (or reuse the same logical name) from sharing a schema or closing each other's DB.
+     */
     public static DataSource h2(String name) {
         return new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
-                .setName(name)
+                .setName(name + "-" + UUID.randomUUID())
                 .build();
     }
 }

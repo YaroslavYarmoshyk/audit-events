@@ -10,6 +10,7 @@ import com.acme.audit.autoconfigure.store.AuditDataSource;
 import com.acme.audit.autoconfigure.store.JdbcAuditEventStore;
 import com.acme.audit.autoconfigure.testsupport.TestDataSources;
 import com.acme.audit.spi.AuditEventStore;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -19,9 +20,11 @@ import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Disabled switch and JDBC data-source resolution")
 class DisabledAndDataSourceResolutionTest {
 
     @Test
+    @DisplayName("Disabling auditing installs a no-op publisher and no store")
     void disabledInstallsNoOpPublisherAndNoStore() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
@@ -37,6 +40,7 @@ class DisabledAndDataSourceResolutionTest {
     }
 
     @Test
+    @DisplayName("Ambiguous data sources without a qualifier fail fast")
     void ambiguousDataSourcesWithoutQualifierFailFast() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
@@ -47,6 +51,7 @@ class DisabledAndDataSourceResolutionTest {
     }
 
     @Test
+    @DisplayName("@AuditDataSource qualifier is selected among many data sources")
     void auditDataSourceQualifierIsSelectedAmongMany() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
@@ -60,6 +65,7 @@ class DisabledAndDataSourceResolutionTest {
     }
 
     @Test
+    @DisplayName("Explicit datasource-bean name is honoured over qualifiers")
     void explicitBeanNameIsHonoured() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(

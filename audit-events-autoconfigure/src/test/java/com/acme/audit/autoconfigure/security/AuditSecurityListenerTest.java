@@ -4,6 +4,7 @@ import com.acme.audit.autoconfigure.testsupport.TestDataFactory;
 import com.acme.audit.autoconfigure.testsupport.TestDataFactory.RecordingPublisher;
 import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
@@ -12,10 +13,12 @@ import org.springframework.security.core.Authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Servlet audit security listener")
 class AuditSecurityListenerTest {
     private final RecordingPublisher publisher = new RecordingPublisher();
 
     @Test
+    @DisplayName("Interactive login records LOGIN attributed to the event principal")
     void interactiveLoginRecordsLoginAttributedToEventPrincipal() {
         listener(true, true).onInteractiveAuthenticationSuccess(interactiveLogin());
 
@@ -27,6 +30,7 @@ class AuditSecurityListenerTest {
     }
 
     @Test
+    @DisplayName("Logout records LOGOUT attributed to the event principal")
     void logoutRecordsLogoutAttributedToEventPrincipal() {
         listener(true, true).onLogoutSuccess(new LogoutSuccessEvent(TestDataFactory.principal(TestData.BOB)));
 
@@ -37,6 +41,7 @@ class AuditSecurityListenerTest {
     }
 
     @Test
+    @DisplayName("Disabled login/logout flags suppress events")
     void disabledFlagsSuppressEvents() {
         AuditSecurityListener listener = listener(false, false);
 
@@ -47,6 +52,7 @@ class AuditSecurityListenerTest {
     }
 
     @Test
+    @DisplayName("Anonymous principal falls back to the anonymous actor")
     void anonymousPrincipalFallsBackToAnonymous() {
         listener(true, true).onInteractiveAuthenticationSuccess(
                 new InteractiveAuthenticationSuccessEvent(TestDataFactory.anonymous(), getClass()));

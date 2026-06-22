@@ -5,6 +5,7 @@ import com.acme.audit.AuditPrincipalResolver;
 import com.acme.audit.NoOpAuditEventPublisher;
 import com.acme.audit.autoconfigure.OAuth2AuditPrincipalResolver;
 import com.acme.audit.autoconfigure.security.ReactiveAuditUserWebFilter;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.AuditorAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Reactive audit security auto-configuration")
 class ReactiveAuditSecurityAutoConfigurationTest {
 
     private final ReactiveWebApplicationContextRunner reactiveRunner = new ReactiveWebApplicationContextRunner()
@@ -23,6 +25,7 @@ class ReactiveAuditSecurityAutoConfigurationTest {
             .withUserConfiguration(StubPublisherConfig.class);
 
     @Test
+    @DisplayName("Reactive stack wires the reactive audit beans")
     void reactiveStackWiresReactiveAuditBeans() {
         reactiveRunner.run(context -> {
             assertThat(context).hasSingleBean(ReactiveAuditUserWebFilter.class);
@@ -35,6 +38,7 @@ class ReactiveAuditSecurityAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("A custom principal resolver overrides the OAuth2 default")
     void customPrincipalResolverOverridesDefault() {
         reactiveRunner.withUserConfiguration(CustomResolverConfig.class).run(context -> {
             assertThat(context).hasSingleBean(AuditPrincipalResolver.class);
@@ -44,6 +48,7 @@ class ReactiveAuditSecurityAutoConfigurationTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    @DisplayName("Reactive AuditorAware is empty when no user is present")
     void reactiveAuditorAwareIsEmptyWithoutAUser() {
         reactiveRunner.run(context -> {
             AuditorAware<String> auditor = context.getBean(AuditorAware.class);
@@ -52,12 +57,14 @@ class ReactiveAuditSecurityAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Disabled master switch backs off the reactive beans")
     void disabledMasterSwitchBacksOff() {
         reactiveRunner.withPropertyValues("framework.audit-events.enabled=false")
                 .run(context -> assertThat(context).doesNotHaveBean(ReactiveAuditUserWebFilter.class));
     }
 
     @Test
+    @DisplayName("A non-reactive application does not activate the reactive beans")
     void nonReactiveApplicationDoesNotActivate() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(ReactiveAuditSecurityAutoConfiguration.class))

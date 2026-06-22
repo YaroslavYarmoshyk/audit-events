@@ -7,6 +7,7 @@ import com.acme.audit.autoconfigure.testsupport.TestDataFactory;
 import com.acme.audit.autoconfigure.testsupport.TestDataFactory.RecordingPublisher;
 import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for the reactive LOGIN/LOGOUT handler decorators: they record the event with the
  * principal from the callback, fall back to anonymous, and always run the wrapped delegate.
  */
+@DisplayName("Reactive audit security handlers")
 class AuditSecurityHandlersTest {
 
     private final RecordingPublisher publisher = new RecordingPublisher();
@@ -34,6 +36,7 @@ class AuditSecurityHandlersTest {
             MockServerWebExchange.from(MockServerHttpRequest.get("/x")), exchange -> Mono.empty());
 
     @Test
+    @DisplayName("Authentication success records LOGIN and runs the delegate")
     void authenticationSuccessRecordsLoginAndDelegates() {
         CountingSuccessHandler delegate = new CountingSuccessHandler();
         ServerAuthenticationSuccessHandler handler =
@@ -51,6 +54,7 @@ class AuditSecurityHandlersTest {
     }
 
     @Test
+    @DisplayName("Logout records LOGOUT and runs the delegate")
     void logoutRecordsLogoutAndDelegates() {
         CountingLogoutHandler delegate = new CountingLogoutHandler();
         ServerLogoutSuccessHandler handler =
@@ -67,6 +71,7 @@ class AuditSecurityHandlersTest {
     }
 
     @Test
+    @DisplayName("Anonymous principal falls back to the anonymous actor")
     void anonymousPrincipalFallsBackToAnonymous() {
         ServerAuthenticationSuccessHandler handler =
                 new AuditServerAuthenticationSuccessHandler(new CountingSuccessHandler(), publisher, resolver);
@@ -79,6 +84,7 @@ class AuditSecurityHandlersTest {
     }
 
     @Test
+    @DisplayName("Logout without an authentication records nothing but still delegates")
     void logoutWithoutAuthenticationRecordsNothingButDelegates() {
         CountingLogoutHandler delegate = new CountingLogoutHandler();
         ServerLogoutSuccessHandler handler =

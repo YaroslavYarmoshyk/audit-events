@@ -8,15 +8,18 @@ import com.acme.audit.AuditEvent;
 import com.acme.audit.constants.AuditConstants;
 import com.acme.audit.testsupport.TestData;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("AuditEventResponse serialization")
 class AuditEventResponseTest {
 
     private final JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
 
     @Test
+    @DisplayName("The createdAt field serializes as a second-precision date-time in the target zone")
     void createdAtSerializesAsSecondPrecisionDateTime() throws Exception {
         AuditEvent event = AuditEvent.builder()
                 .id(UUID.randomUUID())
