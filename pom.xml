@@ -103,6 +103,25 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <!-- Single source of truth for JUnit 5 parallel execution across every module.
+                     Surefire forwards these configurationParameters to the JUnit Platform, so the
+                     whole suite runs classes and methods concurrently (dynamic = scaled to the
+                     available CPUs) without a per-module junit-platform.properties. Tests that touch
+                     shared mutable state opt out via @ResourceLock. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <properties>
+                            <configurationParameters>
+                                junit.jupiter.execution.parallel.enabled = true
+                                junit.jupiter.execution.parallel.mode.default = concurrent
+                                junit.jupiter.execution.parallel.mode.classes.default = concurrent
+                                junit.jupiter.execution.parallel.config.strategy = dynamic
+                            </configurationParameters>
+                        </properties>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
