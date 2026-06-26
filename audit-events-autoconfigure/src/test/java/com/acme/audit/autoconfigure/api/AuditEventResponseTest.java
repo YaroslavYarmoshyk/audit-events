@@ -1,7 +1,6 @@
 package com.acme.audit.autoconfigure.api;
 
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.acme.audit.AuditEvent;
@@ -19,16 +18,16 @@ class AuditEventResponseTest {
     private final JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
 
     @Test
-    @DisplayName("The createdAt field serializes as a second-precision date-time in the target zone")
+    @DisplayName("The createdAt field serializes as a second-precision date-time")
     void createdAtSerializesAsSecondPrecisionDateTime() throws Exception {
         AuditEvent event = AuditEvent.builder()
                 .id(UUID.randomUUID())
                 .type(AuditConstants.LOGIN)
                 .createdBy(TestData.ALICE)
-                .createdAt(Instant.parse("2026-06-18T14:03:19.145931Z"))
+                .createdAt(LocalDateTime.parse("2026-06-18T14:03:19.145931"))
                 .build();
 
-        String json = mapper.writeValueAsString(AuditEventResponse.from(event, ZoneId.of("UTC")));
+        String json = mapper.writeValueAsString(AuditEventResponse.from(event));
 
         assertThat(json).contains("\"createdAt\":\"2026-06-18 14:03:19\"");
     }

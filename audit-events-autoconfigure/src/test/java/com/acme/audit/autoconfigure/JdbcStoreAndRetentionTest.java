@@ -1,8 +1,6 @@
 package com.acme.audit.autoconfigure;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import javax.sql.DataSource;
 
@@ -77,15 +75,14 @@ class JdbcStoreAndRetentionTest {
             DataSource ds = context.getBean(DataSource.class);
             JdbcAuditEventStore store = (JdbcAuditEventStore) context.getBean(AuditEventStore.class);
 
-            Instant old = Instant.now().minus(Duration.ofDays(3650));
+            LocalDateTime old = LocalDateTime.now().minusDays(3650);
             store.save(AuditEvent.builder().type("OLD").createdAt(old).build());
-            store.save(AuditEvent.builder().type("NEW").createdAt(Instant.now()).build());
+            store.save(AuditEvent.builder().type("NEW").createdAt(LocalDateTime.now()).build());
 
             AuditProperties.Retention retention = new AuditProperties.Retention();
             retention.setMaxAge(java.time.Period.ofYears(7));
             retention.setBatchSize(100);
-            AuditRetentionJob job = new AuditRetentionJob(store, retention,
-                    Clock.fixed(Instant.now(), ZoneOffset.UTC));
+            AuditRetentionJob job = new AuditRetentionJob(store, retention, ZoneOffset.UTC);
 
             job.purge();
 

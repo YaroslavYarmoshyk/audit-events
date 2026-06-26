@@ -1,0 +1,67 @@
+# Liquibase changeset template for the audit-events table.
+#
+# Copy this file into your project (e.g. src/main/resources/db/changelog/) and include it from
+# your master changelog:
+#
+#     - include:
+#         file: db/changelog/audit-events.changelog.yaml
+#
+# Liquibase maps the generic column types to each database vendor (CLOB -> TEXT / NVARCHAR(MAX),
+# TIMESTAMP -> timestamp / DATETIME2, etc.), so this single changeset works across PostgreSQL,
+# MySQL and SQL Server. Change the table name only if you also set
+# framework.audit-events.storage.jdbc.table-name.
+databaseChangeLog:
+  - changeSet:
+      id: create-audit-events-table
+      author: audit-events
+      changes:
+        - createTable:
+            tableName: audit_events
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_audit_events
+              - column:
+                  name: type
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: CLOB
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP(6)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: audit_events
+            indexName: ix_audit_events_type_created_at
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: created_at
+        - createIndex:
+            tableName: audit_events
+            indexName: ix_audit_events_created_by_created_at
+            columns:
+              - column:
+                  name: created_by
+              - column:
+                  name: created_at
+        - createIndex:
+            tableName: audit_events
+            indexName: ix_audit_events_created_at
+            columns:
+              - column:
+                  name: created_at

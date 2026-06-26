@@ -1,6 +1,6 @@
 package com.acme.audit;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.acme.audit.constants.AuditConstants;
@@ -30,7 +30,7 @@ class AuditEventTest {
     @DisplayName("Builder honours explicitly supplied values")
     void builderHonoursExplicitValues() {
         UUID id = UUID.randomUUID();
-        Instant ts = Instant.parse("2026-01-01T00:00:00Z");
+        LocalDateTime ts = LocalDateTime.parse("2026-01-01T00:00:00");
 
         AuditEvent event = AuditEvent.builder()
                 .id(id).type(TestData.ORDER_CREATED).metadata("{\"order\":1}")

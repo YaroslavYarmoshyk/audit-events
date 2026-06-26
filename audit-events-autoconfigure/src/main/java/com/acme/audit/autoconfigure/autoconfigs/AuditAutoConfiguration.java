@@ -27,7 +27,6 @@ import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.time.Clock;
 import java.util.Optional;
 
 /**
@@ -39,12 +38,6 @@ import java.util.Optional;
 @ConditionalOnProperty(prefix = "framework.audit-events", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AuditProperties.class)
 public class AuditAutoConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public Clock auditClock(AuditProperties properties) {
-        return Clock.system(properties.getZone());
-    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -104,9 +97,9 @@ public class AuditAutoConfiguration {
     @ConditionalOnMissingBean
     public AuditEventPublisher auditEventPublisher(ApplicationEventPublisher events,
                                                    AuditorAware<String> auditorAware,
-                                                   Clock clock,
+                                                   AuditProperties properties,
                                                    ObjectMapper objectMapper) {
-        return new DefaultAuditEventPublisher(events, auditorAware, clock, objectMapper);
+        return new DefaultAuditEventPublisher(events, auditorAware, properties.getZone(), objectMapper);
     }
 
     @Bean

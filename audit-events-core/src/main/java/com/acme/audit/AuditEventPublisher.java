@@ -9,17 +9,33 @@ import org.jspecify.annotations.Nullable;
  */
 public interface AuditEventPublisher {
 
-    /** Records an event with no metadata. */
-    default void publish(String type) {
-        publish(type, null);
-    }
-
     /**
      * Records an event with optional metadata. A {@code String} (or any
      * {@link CharSequence}) is stored as-is; any other object is serialized to a
      * JSON {@code metadata} string.
      */
     void publish(String type, @Nullable Object metadata);
+
+    /**
+     * Records an event with no metadata.
+     */
+    default void publish(String type) {
+        publish(type, null);
+    }
+
+    /**
+     * Records an event whose type is an enum constant, stored as its {@link Enum#name()}.
+     */
+    default void publish(Enum<?> type) {
+        publish(type.name());
+    }
+
+    /**
+     * As {@link #publish(String, Object)}, with the type given as an enum constant.
+     */
+    default void publish(Enum<?> type, @Nullable Object metadata) {
+        publish(type.name(), metadata);
+    }
 
     /**
      * Records an event attributed to an explicit {@code createdBy}, bypassing the ambient
@@ -35,17 +51,9 @@ public interface AuditEventPublisher {
         publish(type, metadata);
     }
 
-    /** Records an event whose type is an enum constant, stored as its {@link Enum#name()}. */
-    default void publish(Enum<?> type) {
-        publish(type.name());
-    }
-
-    /** As {@link #publish(String, Object)}, with the type given as an enum constant. */
-    default void publish(Enum<?> type, @Nullable Object metadata) {
-        publish(type.name(), metadata);
-    }
-
-    /** As {@link #publishAs(String, String, Object)}, with the type given as an enum constant. */
+    /**
+     * As {@link #publishAs(String, String, Object)}, with the type given as an enum constant.
+     */
     default void publishAs(String createdBy, Enum<?> type, @Nullable Object metadata) {
         publishAs(createdBy, type.name(), metadata);
     }

@@ -5,7 +5,7 @@ import com.acme.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * Storage SPI. Two implementations ship with the library (in-memory and JDBC);
@@ -25,5 +25,5 @@ public interface AuditEventStore {
      *
      * @return the number of rows deleted (0 when nothing matched)
      */
-    int deleteOlderThan(Instant cutoff, int batchSize);
+    int deleteOlderThan(LocalDateTime cutoff, int batchSize);
 }

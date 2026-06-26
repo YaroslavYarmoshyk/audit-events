@@ -1,6 +1,6 @@
 package com.acme.audit.autoconfigure.store;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -61,7 +61,7 @@ public class InMemoryAuditEventStore implements AuditEventStore {
     }
 
     @Override
-    public int deleteOlderThan(Instant cutoff, int batchSize) {
+    public int deleteOlderThan(LocalDateTime cutoff, int batchSize) {
         int deleted = 0;
         for (AuditEvent event : events.values()) {
             if (deleted >= batchSize) {

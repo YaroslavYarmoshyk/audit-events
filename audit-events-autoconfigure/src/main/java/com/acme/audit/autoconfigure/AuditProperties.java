@@ -19,7 +19,7 @@ public class AuditProperties {
     /** Master switch. Set {@code framework.audit-events.enabled=false} per environment for a full no-op. */
     private boolean enabled = true;
 
-    /** Library-wide time zone for the audit {@link java.time.Clock} and calendar-based retention math. */
+    /** Library-wide time zone stamped onto audit events and used for calendar-based retention math. */
     private ZoneId zone = ZoneId.of("America/Toronto");
 
     private final Storage storage = new Storage();

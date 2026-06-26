@@ -1,7 +1,7 @@
 package com.acme.audit.autoconfigure;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.acme.audit.spi.AuditEventStore;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +21,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class AuditRetentionJob {
     private final AuditEventStore store;
     private final AuditProperties.Retention props;
-    private final Clock clock;
+    private final ZoneId zone;
 
     @Scheduled(cron = "${framework.audit-events.retention.cron:0 0 3 * * *}")
     public void purge() {
-        Instant cutoff = Instant.now(clock).atZone(clock.getZone()).minus(props.getMaxAge()).toInstant();
+        LocalDateTime cutoff = LocalDateTime.now(zone).minus(props.getMaxAge());
         int totalDeleted = 0;
         int deleted;
         do {

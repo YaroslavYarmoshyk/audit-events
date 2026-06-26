@@ -1,6 +1,6 @@
 package com.acme.audit.spi;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
@@ -15,8 +15,8 @@ import org.jspecify.annotations.Nullable;
 public record AuditSearchCriteria(
         @Nullable Set<String> types,
         @Nullable Set<String> creators,
-        @Nullable Instant from,
-        @Nullable Instant to) {
+        @Nullable LocalDateTime from,
+        @Nullable LocalDateTime to) {
 
     public static AuditSearchCriteria all() {
         return new AuditSearchCriteria(null, null, null, null);

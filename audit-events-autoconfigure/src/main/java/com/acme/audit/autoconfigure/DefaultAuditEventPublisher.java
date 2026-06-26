@@ -1,6 +1,7 @@
 package com.acme.audit.autoconfigure;
 
-import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.acme.audit.AuditEvent;
 import com.acme.audit.AuditEventPublisher;
@@ -25,7 +26,7 @@ import org.springframework.data.domain.AuditorAware;
 public class DefaultAuditEventPublisher implements AuditEventPublisher {
     private final ApplicationEventPublisher events;
     private final AuditorAware<String> auditorAware;
-    private final Clock clock;
+    private final ZoneId zone;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -43,7 +44,7 @@ public class DefaultAuditEventPublisher implements AuditEventPublisher {
                 .type(type)
                 .metadata(toMetadataString(metadata))
                 .createdBy(createdBy)
-                .createdAt(clock.instant())
+                .createdAt(LocalDateTime.now(zone))
                 .build();
         log.debug("Audit event received type: {} createdBy: {}", event.type(), event.createdBy());
         events.publishEvent(new AuditRecordedEvent(event));

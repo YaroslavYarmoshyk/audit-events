@@ -1,7 +1,5 @@
 package com.acme.audit.autoconfigure.autoconfigs;
 
-import java.time.Clock;
-
 import com.acme.audit.autoconfigure.api.AuditQueryController;
 import com.acme.audit.autoconfigure.api.AuditQueryService;
 import com.acme.audit.spi.AuditEventStore;
@@ -30,8 +28,8 @@ public class AuditApiAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AuditQueryService auditQueryService(AuditEventStore store, Clock clock) {
-        return new AuditQueryService(store, clock.getZone());
+    public AuditQueryService auditQueryService(AuditEventStore store) {
+        return new AuditQueryService(store);
     }
 
     @Bean

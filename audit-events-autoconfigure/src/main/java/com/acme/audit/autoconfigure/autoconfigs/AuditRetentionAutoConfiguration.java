@@ -1,7 +1,5 @@
 package com.acme.audit.autoconfigure.autoconfigs;
 
-import java.time.Clock;
-
 import com.acme.audit.autoconfigure.AuditProperties;
 import com.acme.audit.autoconfigure.AuditRetentionJob;
 import com.acme.audit.spi.AuditEventStore;
@@ -25,7 +23,7 @@ public class AuditRetentionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AuditRetentionJob auditRetentionJob(AuditEventStore store, AuditProperties properties, Clock clock) {
-        return new AuditRetentionJob(store, properties.getRetention(), clock);
+    public AuditRetentionJob auditRetentionJob(AuditEventStore store, AuditProperties properties) {
+        return new AuditRetentionJob(store, properties.getRetention(), properties.getZone());
     }
 }

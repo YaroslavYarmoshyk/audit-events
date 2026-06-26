@@ -21,11 +21,12 @@ Pick the script for your database and copy it into your Flyway location
 
 ## Liquibase
 
-Copy `liquibase/audit-events.changelog.xml` into your project and include it from your master
+Copy `liquibase/audit-events.changelog.yaml` into your project and include it from your master
 changelog:
 
-```xml
-<include file="db/changelog/audit-events.changelog.xml"/>
+```yaml
+- include:
+    file: db/changelog/audit-events.changelog.yaml
 ```
 
 A single changeset covers all vendors – Liquibase maps the generic column types per database.

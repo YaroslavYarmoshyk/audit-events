@@ -1,7 +1,6 @@
 package com.acme.audit.autoconfigure.store;
 
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +39,7 @@ public class JdbcAuditEventStore implements AuditEventStore {
                 .param(event.type())
                 .param(event.metadata())
                 .param(event.createdBy())
-                .param(Timestamp.from(event.createdAt()))
+                .param(event.createdAt())
                 .update();
     }
 
@@ -60,11 +59,11 @@ public class JdbcAuditEventStore implements AuditEventStore {
         }
         if (criteria.from() != null) {
             where.append(" AND created_at >= ?");
-            args.add(Timestamp.from(criteria.from()));
+            args.add(criteria.from());
         }
         if (criteria.to() != null) {
             where.append(" AND created_at <= ?");
-            args.add(Timestamp.from(criteria.to()));
+            args.add(criteria.to());
         }
 
         Long total = jdbc.sql("SELECT COUNT(*) FROM " + table + where)
@@ -80,18 +79,18 @@ public class JdbcAuditEventStore implements AuditEventStore {
                         resultSet.getString("type"),
                         resultSet.getString("metadata"),
                         resultSet.getString("created_by"),
-                        resultSet.getTimestamp("created_at").toInstant()))
+                        resultSet.getObject("created_at", LocalDateTime.class)))
                 .list();
 
         return new PageImpl<>(rows, pageable, total);
     }
 
     @Override
-    public int deleteOlderThan(Instant cutoff, int batchSize) {
+    public int deleteOlderThan(LocalDateTime cutoff, int batchSize) {
         // Portable two-step: select a bounded batch of ids, then delete them.
         List<String> ids = jdbc.sql("SELECT id FROM " + table
                         + " WHERE created_at < ? ORDER BY created_at OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY")
-                .param(Timestamp.from(cutoff))
+                .param(cutoff)
                 .param(batchSize)
                 .query(String.class)
                 .list();
